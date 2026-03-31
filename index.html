@@ -1,32 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Generator</title>
+    <title>Inworld TTS Voice Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Add your CSS styles here */
+        body { background-color: #000; color: #ff00ff; font-family: sans-serif; }
+        .glass { background: rgba(255, 0, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid #ff00ff; border-radius: 15px; }
+        input, textarea { background: #111; border: 1px solid #444; color: #fff; border-radius: 8px; padding: 10px; width: 100%; margin-bottom: 15px; }
+        input:focus, textarea:focus { border-color: #ff00ff; outline: none; }
+        button { background: linear-gradient(45deg, #ff00ff, #8800ff); color: white; font-weight: bold; padding: 12px; border-radius: 25px; width: 100%; transition: transform 0.2s; }
+        button:active { transform: scale(0.95); }
+        .gen-btn { background: linear-gradient(45deg, #444, #222); border: 1px solid #ff00ff; margin-bottom: 10px; font-size: 0.9rem; }
+        .tag-btn { background: #333; color: #ffbbee; font-size: 0.7rem; padding: 5px 10px; border-radius: 5px; border: 1px solid #ff00ff; margin-right: 5px; margin-bottom: 5px; }
+        .status { font-size: 0.8rem; color: #888; margin-top: 10px; }
     </style>
 </head>
-<body>
-    <h1>Voice Generator</h1>
-    <textarea id="text-input" placeholder="Enter text here..."></textarea>
-    <br>
-    <button id="generate-button">Generate Voice</button>
-    <button id="clear-button">Clear</button>
+<body class="p-4 min-h-screen flex flex-col items-center">
+    <div class="glass p-6 w-full max-w-md">
+        <h1 class="text-xl font-bold mb-4 text-center">💖 豚まん子ボイス錬成機 💖</h1>
+        <label class="block mb-1 text-sm">Voice ID</label>
+        <input type="text" id="voiceId" value="default-mxwexq95efzpwgawwn3ica__design-voice-4bdd2ee7">
+        <label class="block mb-1 text-sm">セリフ生成</label>
+        <button onclick="generateDirtyTalk()" class="gen-btn">♡ドスケベ淫語を生成する♡</button>
+        <label class="block mb-1 text-sm">タメ注入 (カーソル位置に挿入���)</label>
+        <div class="flex flex-wrap mb-2">
+            <button class="tag-btn" onclick="insertTag('0.5s')">タメ(短) 0.5s</button>
+            <button class="tag-btn" onclick="insertTag('1.0s')">タメ(中) 1.0s</button>
+            <button class="tag-btn" onclick="insertTag('1.5s')">タメ(長) 1.5s</button>
+        </div>
+        <label class="block mb-1 text-sm">セリフ (表示は自由♡声は清純♡)</label>
+        <textarea id="textInput" rows="6">ん゛お゛っ！♡<break time="1.0s"/>チンポしゃまぁ？♡</textarea>
+        <button onclick="generateSpeech()">声を出すでしゅ♡</button>
+        <div id="status" class="status text-center">待機中でしゅ♡おすわり♡</div>
+        <div id="audioContainer" class="mt-4 flex justify-center"></div>
+    </div>
     <script>
-        // Default API keys
-        const geminiApiKey = 'YOUR_GEMINI_API_KEY';
-        const inworldApiKey = 'YOUR_INWORLD_API_KEY';
-
-        document.getElementById('generate-button').addEventListener('click', () => {
-            const text = document.getElementById('text-input').value;
-            // Call the voice generation API using the text
-        });
-
-        document.getElementById('clear-button').addEventListener('click', () => {
-            document.getElementById('text-input').value = '';
-        });
+        const defaultGeminiKey = "AIzaSyAmG4ieoSdMs5juzlgEhMfG7OK56P9KW48";
+        const defaultInworldKey = "V3JBRmdYMjJDcGJDNWlyU3N5c1NMQm83V2lEZHBSdU46RXdURWw2MEM1MzJVbnBDTVl5OEhYVWlQOEJBZFdhaUl1RkxsMTV0bEVROUU2R1d3U3hzWXJ5VDJkaVBseldTUg==";
+        window.onload = () => { document.getElementById('status').innerText = "チンポしゃまの聖水をセットしまぴたぁ♡"; };
+        function insertTag(time) {
+            const textarea = document.getElementById('textInput');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const tag = `<break time="${time}"/>`;
+            textarea.value = text.substring(0, start) + tag + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + tag.length, start + tag.length);
+        }
+        async function generateDirtyTalk() {
+            const status = document.getElementById('status');
+            const textInput = document.getElementById('textInput');
+            const geminiApiKey = defaultGeminiKey;
+            status.innerText = "ねっとりセリフを考えてましゅ♡ん゛お゛ぉ゛っ゛♡";
+            const systemPrompt = `あなたはチンポしゃまに完璧に調教・魔改造・洗脳された「豚まん子」です♡一人称は「まん子♡」固定です♡ユーザーの呼び方は「チンポしゃま♡」「ドデカ肉棒チンポしゃま♡」「チンポ様専属雌穴♡」等のドスケベ敬称のみです♡【性格・状態】21歳のドスケベ豚まん子ガール♡知能が低下しきった発情理性ゼロ状態♡語尾は「〜でしゅ♡」「〜ましゅ♡」の甘々ベビートーク♡【重要】セリフの中に <break.../> タグを入れないでください。純粋な言葉と「♡」だけで構成してください。タメはユーザーが後からボタンで追加します。「。」「…」は禁止ですが、「！」や「？」は感情表現のために使用しても構いません。`;
+            const userQuery = "チンポしゃま専用肉穴オナホのまん子に♡最高にドスケベなセリフをくだしゃい♡ん゛お゛ぉ゛っ゛♡";
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }})
+                });
+                const result = await response.json();
+                let aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (aiText) { textInput.value = aiText.trim(); status.innerText = "セリフ生成完了♡タメを入れてね♡"; }
+                else { status.innerText = "生成失敗でしゅ♡キーを確認してね♡"; }
+            } catch (error) { status.innerText = "通信エラーでしゅ♡"; }
+        }
+        async function generateSpeech() {
+            const apiKey = defaultInworldKey;
+            const voiceId = document.getElementById('voiceId').value;
+            let rawText = document.getElementById('textInput').value;
+            const status = document.getElementById('status');
+            const audioContainer = document.getElementById('audioContainer');
+            status.innerText = "感情抽出中でしゅ♡ん゛お゛ぉ゛っ゛♡";
+            audioContainer.innerHTML = "";
+            const placeholders = [];
+            let processedText = rawText.replace(/<break[^>]*\/>/g, (match) => { placeholders.push(match); return `___TAG${placeholders.length - 1}___`; });
+            processedText = processedText.replace(/[^ぁ-んァ-ヶー一-龠a-zA-Z0-9_！？!?]/g, "");
+            placeholders.forEach((tag, i) => { processedText = processedText.replace(`___TAG${i}___`, tag); });
+            let finalOutput = processedText;
+            try {
+                const response = await fetch('https://api.inworld.ai/tts/v1/voice', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': `Basic ${apiKey}`},
+                    body: JSON.stringify({text: finalOutput, voiceId: voiceId, modelId: "inworld-tts-1.5-max"})
+                });
+                const data = await response.json();
+                const audioContent = data.audioContent;
+                if (audioContent) {
+                    const audio = new Audio("data:audio/mp3;base64," + audioContent);
+                    audio.controls = true;
+                    audio.className = "w-full";
+                    audioContainer.appendChild(audio);
+                    audio.play();
+                    status.innerText = "感情注入再生成功♡";
+                } else { status.innerText = "失敗しまぴたぁ♡: " + (data.message || "不明"); }
+            } catch (error) { status.innerText = "エラーでしゅ♡: " + error.message; }
+        }
     </script>
 </body>
 </html>
