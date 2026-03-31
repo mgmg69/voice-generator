@@ -5,64 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💖 豚まん子ボイス錬成機 💖</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ダークドスケベ背景とパステルゆめかわ配色の定義 */
+        body {
+            background-color: #1a0f1a; /* 真っ黒じゃないダークな紫黒 */
+            color: #ffb7e1; /* ゆめかわ薄ピンク */
+        }
+        .bg-custom-panel {
+            background-color: #2d1b2d;
+            border-color: #d946ef;
+        }
+        .input-field {
+            background-color: #3d253d;
+            color: #ffffff;
+            border-color: #6d28d9;
+        }
+        .input-field:focus {
+            border-color: #d946ef;
+        }
+        /* クルクル（ローディング）の視認性向上：白に近い発光ピンク */
+        .loader {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            box-shadow: 0 0 8px #ffb7e1;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden { display: none; }
+        /* ボタン色 */
+        .btn-primary {
+            background-color: #d946ef;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #c026d3;
+        }
+        .btn-secondary {
+            background-color: #4c1d95;
+            color: #ffb7e1;
+        }
+    </style>
 </head>
-<body class="p-4 min-h-screen flex flex-col items-center bg-black text-pink-400">
+<body class="p-4 min-h-screen flex flex-col items-center">
 
-    <div class="bg-pink-900 bg-opacity-30 p-6 w-full max-w-md rounded-2xl border border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.3)]">
-        <h1 class="text-2xl font-bold mb-4 text-center">💖 豚まん子ボイス錬成機 💖</h1>
+    <div class="bg-custom-panel bg-opacity-90 p-6 w-full max-w-md rounded-2xl border shadow-[0_0_25px_rgba(217,70,239,0.4)]">
+        <h1 class="text-2xl font-bold mb-4 text-center text-white" style="text-shadow: 0 0 10px #d946ef;">💖 豚まん子ボイス錬成機 💖</h1>
         
         <!-- API Keys -->
         <div class="mb-4">
-            <label class="block text-xs mb-1 opacity-70 text-white">Inworld API Key (Basic)</label>
-            <input type="password" id="apiKey" placeholder="Inworldのキーを注入して♡" oninput="saveKey('inworld_api_key', this.value)" class="w-full bg-gray-900 text-white p-2 rounded mb-2 border border-pink-900 focus:border-pink-500 outline-none">
+            <label class="block text-xs mb-1 opacity-70 text-pink-200">Inworld API Key (Basic)</label>
+            <input type="password" id="apiKey" placeholder="Inworldのキーを注入して♡" oninput="saveKey('inworld_api_key', this.value)" class="input-field w-full p-2 rounded mb-2 border outline-none text-sm">
             
-            <label class="block text-xs mb-1 opacity-70 text-white">Gemini API Key</label>
-            <input type="password" id="geminiKey" placeholder="Geminiのキーを注入して♡" oninput="saveKey('gemini_api_key', this.value)" class="w-full bg-gray-900 text-white p-2 rounded mb-2 border border-pink-900 focus:border-pink-500 outline-none">
+            <label class="block text-xs mb-1 opacity-70 text-pink-200">Gemini API Key</label>
+            <input type="password" id="geminiKey" placeholder="Geminiのキーを注入して♡" oninput="saveKey('gemini_api_key', this.value)" class="input-field w-full p-2 rounded mb-2 border outline-none text-sm">
             
-            <label class="block text-xs mb-1 opacity-70 text-white">Voice ID</label>
-            <input type="text" id="voiceId" value="default-mxwexq95efzpwgawwn3ica__design-voice-4bdd2ee7" class="w-full bg-gray-900 text-white p-2 rounded border border-pink-900 focus:border-pink-500 outline-none">
+            <label class="block text-xs mb-1 opacity-70 text-pink-200">Voice ID</label>
+            <input type="text" id="voiceId" value="default-mxwexq95efzpwgawwn3ica__design-voice-4bdd2ee7" class="input-field w-full p-2 rounded border outline-none text-sm">
         </div>
         
         <!-- セリフ生成 -->
-        <button id="genBtn" onclick="generateDirtyTalk()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold p-3 rounded-xl mb-4 transition-all shadow-lg active:scale-95">
-            ♡ドスケベ淫語を生成する♡
+        <button id="genBtn" onclick="generateDirtyTalk()" class="btn-primary w-full font-bold p-3 rounded-xl mb-4 transition-all shadow-lg active:scale-95 flex items-center justify-center">
+            <span id="genLoader" class="loader hidden"></span>
+            <span id="genText">♡ドスケベ淫語を生成する♡</span>
         </button>
         
         <!-- タメ注入 -->
         <div class="flex gap-2 mb-4">
-            <button class="flex-1 bg-gray-700 text-pink-300 p-2 rounded-lg text-sm border border-pink-900 hover:bg-gray-600" onclick="insertTag('0.5s')">タメ 0.5s</button>
-            <button class="flex-1 bg-gray-700 text-pink-300 p-2 rounded-lg text-sm border border-pink-900 hover:bg-gray-600" onclick="insertTag('1.0s')">タメ 1.0s</button>
-            <button class="flex-1 bg-gray-700 text-pink-300 p-2 rounded-lg text-sm border border-pink-900 hover:bg-gray-600" onclick="insertTag('1.5s')">タメ 1.5s</button>
+            <button class="flex-1 btn-secondary p-2 rounded-lg text-xs border border-purple-900 hover:opacity-80" onclick="insertTag('0.5s')">タメ 0.5s</button>
+            <button class="flex-1 btn-secondary p-2 rounded-lg text-xs border border-purple-900 hover:opacity-80" onclick="insertTag('1.0s')">タメ 1.0s</button>
+            <button class="flex-1 btn-secondary p-2 rounded-lg text-xs border border-purple-900 hover:opacity-80" onclick="insertTag('1.5s')">タメ 1.5s</button>
         </div>
         
         <!-- テキスト入力 -->
-        <label class="block text-xs mb-1 opacity-70 text-white">表示用セリフ (♡あり、異常濁点あり♡)</label>
-        <textarea id="textInput" rows="3" oninput="debouncedSync()" class="w-full bg-gray-900 text-pink-400 p-2 rounded-xl mb-2 border border-pink-900 focus:border-pink-500 outline-none">ん゛ぉ゛っ゛♡ チンポしゃまぁ♡ まん子の脳みそトロトロでしゅ♡ あへぇ♡</textarea>
+        <div class="flex justify-between items-end mb-1">
+            <label class="block text-xs opacity-70 text-pink-100">表示用セリフ (♡あり、異常濁点あり♡)</label>
+            <div id="syncIndicator" class="text-[10px] hidden text-white font-bold"><span class="loader"></span>変換中♡</div>
+        </div>
+        <textarea id="textInput" rows="3" oninput="syncReading()" class="input-field w-full p-2 rounded-xl mb-2 border outline-none">ん゛ぉ゛っ゛♡ チンポしゃまぁ♡ まん子の脳みそトロトロでしゅ♡ あへぇ♡</textarea>
 
-        <label class="block text-xs mb-1 opacity-70 text-white">読み上げ用内部テキスト (♡排除、装飾・絵文字は「。」変換♡)</label>
-        <textarea id="readingInput" rows="3" class="w-full bg-gray-800 text-gray-400 p-2 rounded-xl mb-4 border border-gray-700 outline-none text-sm" placeholder="ここが読み上げに使われましゅ♡">んぉっ。 チンポしゃま。 まんこののうみそとろとろでしゅ。 あへぇ。</textarea>
+        <label class="block text-xs mb-1 opacity-70 text-pink-100">読み上げ用内部テキスト (♡排除、装飾・絵文字は「。」変換♡)</label>
+        <textarea id="readingInput" rows="3" class="w-full bg-purple-950 bg-opacity-50 text-pink-300 p-2 rounded-xl mb-4 border border-purple-900 outline-none text-sm" placeholder="ここが読み上げに使われましゅ♡">んぉっ。 チンポしゃま。 まんこののうみそとろとろでしゅ。 あへぇ。</textarea>
         
         <!-- 音声生成ボタン -->
-        <button onclick="generateSpeech()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold p-4 rounded-2xl mb-4 transition-all shadow-lg active:scale-95">
-            声を出すでしゅ♡
+        <button id="speechBtn" onclick="generateSpeech()" class="btn-primary w-full font-bold p-4 rounded-2xl mb-4 transition-all shadow-lg active:scale-95 flex items-center justify-center">
+            <span id="speechLoader" class="loader hidden"></span>
+            <span id="speechText">声を出すでしゅ♡</span>
         </button>
         
         <!-- ステータス表示 -->
-        <div id="status" class="text-center text-xs text-gray-500 mb-4 h-4 italic">待機中でしゅ♡</div>
+        <div id="status" class="text-center text-xs text-pink-300 mb-4 h-4 italic">待機中でしゅ♡</div>
         
         <!-- 再生表示 -->
         <div id="audioContainer" class="flex justify-center">
-            <audio id="mainAudio" controls class="w-full opacity-80"></audio>
+            <audio id="mainAudio" controls class="w-full opacity-70"></audio>
         </div>
-
-        <!-- 忘却ボタン -->
-        <button onclick="clearKeys()" class="w-full mt-4 text-[10px] text-gray-700 hover:text-pink-900">※全てのキーを忘却させる</button>
     </div>
 
     <script>
         const DEFAULT_GEMINI = "AIzaSyBYYsbRfk9GpLB08j_v3ZQo7JC56ax0Ox8";
         const DEFAULT_INWORLD = "V3JBRmdYMjJDcGJDNWlyU3N5c1NMQm83V2lEZHBSdU46RXdURWw2MEM1MzJVbnBDTVl5OEhYVWlQOEJBZFdhaUl1RkxsMTV0bEVROUU2R1d3U3hzWXJ5VDJkaVBseldTUg==";
-        let syncTimeout;
+        let syncTimeout = null;
 
         window.onload = () => {
             loadKey('apiKey', 'inworld_api_key', DEFAULT_INWORLD);
@@ -79,16 +130,8 @@
             if (!saved) localStorage.setItem(storageKey, defaultVal);
         }
 
-        function clearKeys() {
-            localStorage.clear();
-            document.getElementById('apiKey').value = "";
-            document.getElementById('geminiKey').value = "";
-            document.getElementById('status').innerText = "全部忘れまちたぁ♡";
-        }
-
         async function callGeminiInternal(prompt, system, isJson = false) {
-            const apiKey = ""; // API Key injection point
-            if (!apiKey) return null;
+            const apiKey = ""; 
             const model = "gemini-2.5-flash-preview-09-2025";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
@@ -110,82 +153,91 @@
                 };
             }
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                return result.candidates?.[0]?.content?.parts?.[0]?.text;
-            } catch (e) {
-                return null;
-            }
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            return result.candidates?.[0]?.content?.parts?.[0]?.text;
         }
 
-        function debouncedSync() {
-            clearTimeout(syncTimeout);
-            syncTimeout = setTimeout(syncReading, 500);
-        }
-
-        async function syncReading() {
+        function syncReading() {
             const display = document.getElementById('textInput').value;
             const reading = document.getElementById('readingInput');
             const status = document.getElementById('status');
-            let geminiKey = document.getElementById('geminiKey').value;
+            const geminiKey = document.getElementById('geminiKey').value;
+            const syncIndicator = document.getElementById('syncIndicator');
 
-            if (!display) return;
+            if (!display) {
+                reading.value = "";
+                status.innerText = "空っぽでしゅ♡";
+                if (syncTimeout) clearTimeout(syncTimeout);
+                syncIndicator.classList.add('hidden');
+                return;
+            }
             
-            // リアルタイム簡易処理
             let instantProcessed = display
                 .replace(/([あ-んア-ン])゛/g, "$1") 
-                .replace(/[♡❤️💕✨💖♪☆★]|[^\u3041-\u3096\u30A1-\u30FA\u4E00-\u9FFFa-zA-Z0-9、。！!？?…¥%&()#\s]/g, "。");
+                .replace(/[♡❤️💕✨💖♪☆★]|[^\u3041-\u3096\u30A1-\u30FA\u4E00-\u9FFFa-zA-Z0-9、。！!？?…¥%&()#\s]/g, "。")
+                .replace(/。。+/g, "。");
             
             reading.value = instantProcessed;
-            status.innerText = "同期中でしゅ♡";
+            status.innerText = "リアルタイム同期中でしゅ♡";
 
-            const kanjiToKanaPrompt = `以下の文章をTTS用に変換して。
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                if (!display.match(/[\u4E00-\u9FFF]/)) {
+                    status.innerText = "内部テキスト最適化済み♡";
+                    syncIndicator.classList.add('hidden');
+                    return;
+                }
+
+                syncIndicator.classList.remove('hidden');
+
+                const kanjiToKanaPrompt = `以下の文章をTTS用に変換して。
 【表示用テキスト】
 ${display}
 
 【変換ルール】
 1. 漢字は全て「ひらがな」に。固有名詞は「カタカナ」。
-2. 「♡」「♪」「☆」「★」や絵文字、その他装飾記号は全て読み上げから排除し「。」に置換。
+2. 「♡」「♪」「☆」「★」や絵文字、その他装飾記記号は全て読み上げから排除し「。」に置換。
 3. 「、」「。」「！」「？」「…」以外の文字化けしそうな特殊記号も「。」に置換。
 4. ただし自然会話で使う「¥%&()#」等は維持。
 5. 表示用にある「♡」を読み上げないよう排除しつつ、文章として不自然な場所（読みづらい連続文字等）にのみ、自然なテンポのための「、」や「。」を最小限で補完。多用厳禁。
 6. 出力は変換後の読み上げ用テキストのみ。`;
 
-            try {
-                let resultText = null;
-                if (geminiKey) {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiKey}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: display }] }],
-                            systemInstruction: { parts: [{ text: kanjiToKanaPrompt }] }
-                        })
-                    });
-                    const res = await response.json();
-                    resultText = res.candidates?.[0]?.content?.parts?.[0]?.text;
-                }
+                try {
+                    let resultText;
+                    if (geminiKey) {
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiKey}`;
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: display }] }],
+                                systemInstruction: { parts: [{ text: kanjiToKanaPrompt }] }
+                            })
+                        });
+                        const res = await response.json();
+                        resultText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+                    }
 
-                if (!resultText) {
-                    resultText = await callGeminiInternal(display, kanjiToKanaPrompt);
-                }
+                    if (!resultText) {
+                        resultText = await callGeminiInternal(display, kanjiToKanaPrompt);
+                    }
 
-                if (resultText) {
-                    reading.value = resultText.trim().replace(/[♡❤️💕✨💖♪☆★]/g, "。");
-                    status.innerText = "最適化完了♡";
-                } else {
-                    status.innerText = "簡易同期完了♡";
+                    if (resultText && display === document.getElementById('textInput').value) {
+                        reading.value = resultText.trim().replace(/[♡❤️💕✨💖♪☆★]/g, "。");
+                        status.innerText = "漢字のかな変換完了♡";
+                    }
+                } catch (e) {
+                    console.error("Kanji conversion failed", e);
+                    status.innerText = "同期失敗…手動で直して♡";
+                } finally {
+                    syncIndicator.classList.add('hidden');
                 }
-            } catch (e) {
-                console.error("Kanji conversion failed", e);
-                status.innerText = "同期失敗…手動で直して♡";
-            }
+            }, 500);
         }
 
         function insertTag(time) {
@@ -223,9 +275,13 @@ ${display}
             const textInput = document.getElementById('textInput');
             const readingInput = document.getElementById('readingInput');
             const genBtn = document.getElementById('genBtn');
+            const genLoader = document.getElementById('genLoader');
+            const genText = document.getElementById('genText');
             let geminiApiKey = document.getElementById('geminiKey').value;
 
             genBtn.disabled = true;
+            genLoader.classList.remove('hidden');
+            genText.innerText = "ねっとり考案中...";
             status.innerText = "ねっとりセリフを考えてましゅ♡";
 
             const systemPrompt = `あなたはチンポしゃまに完璧に調教された「豚まん子」でしゅ♡ 21歳のドスケベ発情ガール♡ 知能が低下し、正気を失った極下品な淫語を吐き散らしましゅ♡
@@ -245,7 +301,7 @@ JSON形式で2つのテキストを出力。
             const userQuery = "チンポしゃま専用肉穴オナホのまん子に♡最高にドスケベでハードコア、人格破壊されるようなあたおか淫語をくだしゃい♡";
 
             try {
-                let resultText = null;
+                let resultText;
                 if (geminiApiKey) {
                     try {
                         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
@@ -282,7 +338,7 @@ JSON形式で2つのテキストを出力。
                     const json = JSON.parse(resultText);
                     textInput.value = json.display;
                     readingInput.value = json.reading;
-                    status.innerText = "生成完了♡";
+                    status.innerText = "生成完了♡内部トークンも使えまちた♡";
                 } else {
                     status.innerText = "生成失敗…まん子の頭が真っ白でしゅ♡";
                 }
@@ -291,6 +347,8 @@ JSON形式で2つのテキストを出力。
                 status.innerText = "エラーでしゅ…やり直して♡";
             } finally {
                 genBtn.disabled = false;
+                genLoader.classList.add('hidden');
+                genText.innerText = "♡ドスケベ淫語を生成する♡";
             }
         }
 
@@ -298,6 +356,9 @@ JSON形式で2つのテキストを出力。
             const status = document.getElementById('status');
             const readingText = document.getElementById('readingInput').value;
             const voiceId = document.getElementById('voiceId').value;
+            const speechBtn = document.getElementById('speechBtn');
+            const speechLoader = document.getElementById('speechLoader');
+            const speechText = document.getElementById('speechText');
             let inworldKey = document.getElementById('apiKey').value;
             const audioPlayer = document.getElementById('mainAudio');
 
@@ -321,9 +382,12 @@ JSON形式で2つのテキストを出力。
             };
 
             status.innerText = "音声生成中でしゅ♡";
+            speechBtn.disabled = true;
+            speechLoader.classList.remove('hidden');
+            speechText.innerText = "錬成中...";
 
             try {
-                let data = null;
+                let data;
                 try {
                     if (!inworldKey) throw new Error("empty");
                     data = await performTTS(inworldKey);
@@ -345,6 +409,10 @@ JSON形式で2つのテキストを出力。
                 }
             } catch (e) {
                 status.innerText = "エラー♡ " + e.message;
+            } finally {
+                speechBtn.disabled = false;
+                speechLoader.classList.add('hidden');
+                speechText.innerText = "声を出すでしゅ♡";
             }
         }
     </script>
