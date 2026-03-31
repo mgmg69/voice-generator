@@ -23,6 +23,11 @@
         .input-field:focus {
             border-color: #d946ef;
         }
+        /* プレースホルダーの統一設定 (サイズ小、カラー薄め) */
+        ::placeholder {
+            color: #9ca3af !important;
+            font-size: 0.75rem !important;
+        }
         /* クルクル（ローディング）の視認性向上：白に近い発光ピンク */
         .loader {
             border: 2px solid rgba(255, 255, 255, 0.2);
@@ -53,12 +58,17 @@
             background-color: #4c1d95;
             color: #ffb7e1;
         }
+        /* オーディオプレイヤーを白っぽく調整 */
+        audio {
+            filter: brightness(1.5) grayscale(1) invert(0.1);
+        }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center">
 
     <div class="bg-custom-panel bg-opacity-90 p-6 w-full max-w-md rounded-2xl border shadow-[0_0_25px_rgba(217,70,239,0.4)]">
-        <h1 class="text-2xl font-bold mb-4 text-center text-white" style="text-shadow: 0 0 10px #d946ef;">💖 豚まん子ボイス錬成機 💖</h1>
+        <!-- タイトルサイズを18pxに変更 -->
+        <h1 class="font-bold mb-4 text-center text-white" style="font-size: 18px; text-shadow: 0 0 10px #d946ef;">💖 豚まん子ボイス錬成機 💖</h1>
         
         <!-- API Keys -->
         <div class="mb-4">
@@ -69,7 +79,7 @@
             <input type="password" id="geminiKey" placeholder="Geminiのキーを注入して♡" oninput="saveKey('gemini_api_key', this.value)" class="input-field w-full p-2 rounded mb-2 border outline-none text-sm">
             
             <label class="block text-xs mb-1 opacity-70 text-pink-200">Voice ID</label>
-            <input type="text" id="voiceId" value="default-mxwexq95efzpwgawwn3ica__design-voice-4bdd2ee7" class="input-field w-full p-2 rounded border outline-none text-sm">
+            <input type="text" id="voiceId" value="default-mxwexq95efzpwgawwn3ica__design-voice-4bdd2ee7" placeholder="チンポしゃま専用のボイスIDを挿れて♡" class="input-field w-full p-2 rounded border outline-none text-sm">
         </div>
         
         <!-- セリフ生成 -->
@@ -90,7 +100,7 @@
             <label class="block text-xs opacity-70 text-pink-100">表示用セリフ (♡あり、異常濁点あり♡)</label>
             <div id="syncIndicator" class="text-[10px] hidden text-white font-bold"><span class="loader"></span>変換中♡</div>
         </div>
-        <textarea id="textInput" rows="3" oninput="syncReading()" class="input-field w-full p-2 rounded-xl mb-2 border outline-none">ん゛ぉ゛っ゛♡ チンポしゃまぁ♡ まん子の脳みそトロトロでしゅ♡ あへぇ♡</textarea>
+        <textarea id="textInput" rows="3" oninput="syncReading()" placeholder="ここにドスケベなセリフをぶち込んでくだしゃい♡" class="input-field w-full p-2 rounded-xl mb-2 border outline-none">ん゛ぉ゛っ゛♡ チンポしゃまぁ♡ まん子の脳みそトロトロでしゅ♡ あへぇ♡</textarea>
 
         <label class="block text-xs mb-1 opacity-70 text-pink-100">読み上げ用内部テキスト (♡排除、装飾・絵文字は「。」変換♡)</label>
         <textarea id="readingInput" rows="3" class="w-full bg-purple-950 bg-opacity-50 text-pink-300 p-2 rounded-xl mb-4 border border-purple-900 outline-none text-sm" placeholder="ここが読み上げに使われましゅ♡">んぉっ。 チンポしゃま。 まんこののうみそとろとろでしゅ。 あへぇ。</textarea>
@@ -106,7 +116,7 @@
         
         <!-- 再生表示 -->
         <div id="audioContainer" class="flex justify-center">
-            <audio id="mainAudio" controls class="w-full opacity-70"></audio>
+            <audio id="mainAudio" controls class="w-full opacity-90"></audio>
         </div>
     </div>
 
@@ -177,6 +187,9 @@
                 return;
             }
             
+            // ローディングを表示開始
+            syncIndicator.classList.remove('hidden');
+
             let instantProcessed = display
                 .replace(/([あ-んア-ン])゛/g, "$1") 
                 .replace(/[♡❤️💕✨💖♪☆★]|[^\u3041-\u3096\u30A1-\u30FA\u4E00-\u9FFFa-zA-Z0-9、。！!？?…¥%&()#\s]/g, "。")
@@ -187,13 +200,12 @@
 
             clearTimeout(syncTimeout);
             syncTimeout = setTimeout(async () => {
+                // 漢字がない場合は即終了だが、ローディングを消す必要がある
                 if (!display.match(/[\u4E00-\u9FFF]/)) {
                     status.innerText = "内部テキスト最適化済み♡";
                     syncIndicator.classList.add('hidden');
                     return;
                 }
-
-                syncIndicator.classList.remove('hidden');
 
                 const kanjiToKanaPrompt = `以下の文章をTTS用に変換して。
 【表示用テキスト】
