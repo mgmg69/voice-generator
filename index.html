@@ -1,21 +1,32 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Generator</title>
-    <script>
-        // Auto-set default API keys
-        const geminiApiKey = 'AIzaSyAmG4ieoSdMs5juzlgEhMfG7OK56P9KW48';
-        const inworldApiKey = 'V3JBRmdYMjJDcGJDNWlyU3N5c1NMQm83V2lEZHBSdU46RXdURWw2MEM1MzJVbnBDTVl5OEhYVWlQOEJBZFdhaUl1RkxsMTV0bEVROUU2R1d3U3hzWXJ5VDJkaVBseldTUg==';
-
-        // Functionality originally present
-        function initialize() {
-            // Original initialization code...
-        }
-    </script>
+    <style>
+        /* Add your CSS styles here */
+    </style>
 </head>
 <body>
-    <div>
-        <h1>Welcome to the Voice Generator</h1>
-        <!-- Existing HTML content... -->
-    </div>
+    <h1>Voice Generator</h1>
+    <textarea id="text-input" placeholder="Enter text here..."></textarea>
+    <br>
+    <button id="generate-button">Generate Voice</button>
+    <button id="clear-button">Clear</button>
+    <script>
+        // Default API keys
+        const geminiApiKey = 'YOUR_GEMINI_API_KEY';
+        const inworldApiKey = 'YOUR_INWORLD_API_KEY';
+
+        document.getElementById('generate-button').addEventListener('click', () => {
+            const text = document.getElementById('text-input').value;
+            // Call the voice generation API using the text
+        });
+
+        document.getElementById('clear-button').addEventListener('click', () => {
+            document.getElementById('text-input').value = '';
+        });
+    </script>
 </body>
 </html>
